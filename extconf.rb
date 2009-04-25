@@ -12,11 +12,20 @@ elsif mc = with_config('mysql-config') then
   $CPPFLAGS += ' ' + cflags
   $libs = libs + " " + $libs
 else
-  inc, lib = dir_config('mysql', '/usr/local')
-  libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
-  while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
-    exit 1 if libs.empty?
-    have_library(libs.shift)
+  # auto configure
+  if find_executable('mysql_config')
+    $CFLAGS << " #{`mysql_config --cflags`.strip}"
+    $LIBS << " #{`mysql_config --libs`.strip}"
+  elsif find_executable('mysql_config5') 
+    $CFLAGS << " #{`mysql_config5 --cflags`.strip}"
+    $LIBS << " #{`mysql_config5 --libs`.strip}"
+  else
+    inc, lib = dir_config('mysql', '/usr/local')
+    libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
+    while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
+      exit 1 if libs.empty?
+      have_library(libs.shift)
+    end
   end
 end
 
